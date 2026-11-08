@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="ru"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ЧПА — сервер MTA:SA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;800&family=Russo+One&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#0c0d11;--graph:#16171e;--line:#262833;--paper:#efe6d2;--paper2:#d9ccb0;--cu:#c98a4b;--tx:#e9e6df;--mut:#9b99a3;--r:26px;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+html{scroll-padding-top:env(safe-area-inset-top,0px);scroll-behavior:smooth}
+*{box-sizing:border-box;margin:0}
+body{background:var(--ink);color:var(--tx);font:400 16px/1.6 Manrope,system-ui,sans-serif;min-height:100vh;
+background-image:radial-gradient(900px 500px at 70% -5%,#2a2118 0,transparent 60%)}
+a{color:inherit;text-decoration:none}
+header{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;display:flex;align-items:center;gap:20px;flex-wrap:wrap;
+max-width:1100px;margin:14px auto 0;padding:10px 14px;background:rgba(22,23,30,.88);backdrop-filter:blur(12px);border:1px solid var(--line);border-radius:999px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:4;background:var(--ink)}
+.logo{font:400 26px/1 'Russo One',sans-serif;color:#2b2418;background:var(--paper);padding:9px 18px 8px;border-radius:14px 18px 12px 20px;transform:rotate(-2.5deg);
+box-shadow:0 2px 0 var(--paper2),0 8px 18px rgba(0,0,0,.45);letter-spacing:2px;position:relative}
+.logo::after{content:"";position:absolute;right:0;bottom:0;width:16px;height:16px;background:linear-gradient(135deg,transparent 50%,var(--paper2) 50%);border-radius:0 0 12px 0}
+nav{display:flex;gap:4px;flex-wrap:wrap;margin-left:auto}
+nav a{padding:8px 15px;border-radius:999px;color:var(--mut);font-weight:600;font-size:15px;transition:.2s}
+nav a:hover{color:var(--tx)}
+main{max-width:1100px;margin:0 auto;padding:0 18px 60px}
+.page{display:none}.page.on{display:block}
+.hero{position:relative;margin-top:22px;min-height:560px;border-radius:40px;overflow:hidden;border:1px solid var(--line);
+background:radial-gradient(600px 340px at 68% 62%,#3a2b1c 0,transparent 70%),linear-gradient(160deg,#181920,#0b0b0f);padding:48px 44px}
+.hero h1{font:400 clamp(34px,5vw,60px)/1.05 'Russo One',sans-serif;max-width:520px}
+.hero p{color:var(--mut);max-width:400px;margin:16px 0 26px}
+.online{display:inline-flex;align-items:center;gap:10px;background:rgba(255,255,255,.07);border:1px solid var(--line);border-radius:999px;padding:9px 18px;font-weight:600}
+.dot{width:10px;height:10px;border-radius:50%;background:#58d68d;box-shadow:0 0 0 0 #58d68d;animation:p 2s infinite}
+@keyframes p{70%{box-shadow:0 0 0 9px transparent}}
+.btn{display:inline-block;cursor:pointer;font:800 16px Manrope}
+
+
+.row{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+#car{position:absolute;right:-30px;bottom:30px;width:min(66%,720px);cursor:pointer;filter:drop-shadow(0 30px 28px rgba(0,0,0,.65));transition:transform .2s;-webkit-tap-highlight-color:transparent}
+#car.rev{animation:rev .13s linear infinite}
+@keyframes rev{50%{transform:translate(2px,-2px) rotate(.3deg)}}
+.shadow{position:absolute;right:60px;bottom:26px;width:55%;height:34px;background:radial-gradient(closest-side,rgba(0,0,0,.7),transparent);}
+section{margin-top:70px}
+h2{font:400 clamp(26px,3.5vw,40px)/1.15 'Russo One',sans-serif;margin-bottom:18px}
+.card{background:var(--graph);border:1px solid var(--line);border-radius:var(--r);padding:28px}
+.two{display:grid;grid-template-columns:1.2fr 1fr;gap:18px}
+.chip{display:inline-block;background:var(--paper);color:#2b2418;border-radius:12px 16px 10px 14px;padding:4px 12px;font-weight:800;transform:rotate(-1.5deg)}
+.why{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:20px}
+.why .card{display:flex;flex-direction:column;justify-content:flex-end;min-height:290px;background:radial-gradient(400px 220px at 50% 35%,#2d2519,var(--graph) 75%)}
+.why img{width:100%;max-height:200px;object-fit:contain;margin-bottom:14px;filter:drop-shadow(0 14px 14px rgba(0,0,0,.55))}
+.why b{font-size:18px}.why span{color:var(--mut);font-size:15px}
+.map{position:relative;margin:30px 0}
+.map::before{content:"";position:absolute;left:34px;top:30px;bottom:30px;border-left:3px dashed #4a4033}
+.step{position:relative;display:flex;gap:22px;margin-bottom:22px}
+.pin{flex:none;width:70px;height:70px;border-radius:50% 50% 50% 14px;transform:rotate(-45deg);background:var(--paper);color:#2b2418;display:grid;place-items:center;box-shadow:0 8px 18px rgba(0,0,0,.5)}
+.pin i{transform:rotate(45deg);font:400 26px 'Russo One';font-style:normal}
+.step .card{flex:1;padding:22px 26px}
+.step h3{font-size:19px;margin-bottom:6px}.step p{color:var(--mut)}
+.ip{display:inline-flex;gap:10px;align-items:center;margin-top:12px;background:var(--ink);border:1px solid var(--line);border-radius:999px;padding:6px 6px 6px 18px;font-weight:700}
+.ip button{font:800 14px Manrope;cursor:pointer}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px}
+.price{font:400 34px 'Russo One';color:var(--cu);margin:8px 0}
+details{background:var(--graph);border:1px solid var(--line);border-radius:22px;padding:18px 24px;margin-bottom:12px}
+summary{cursor:pointer;font-weight:700;list-style:none}summary::-webkit-details-marker{display:none}
+summary::after{content:"+";float:right;color:var(--cu);font-size:22px;line-height:1}details[open] summary::after{content:"–"}
+details p{color:var(--mut);margin-top:10px}
+.pagehead{margin:40px 0 10px}.pagehead p{color:var(--mut);max-width:560px}
+footer{max-width:1100px;margin:0 auto;padding:0 18px 40px;color:var(--mut);font-size:14px;text-align:center}
+@media(max-width:760px){.hero{padding:30px 22px;min-height:620px}#car{width:118%;right:-9%;bottom:20px}.two,.why{grid-template-columns:1fr}.step{gap:14px}.pin{width:56px;height:56px}.map::before{left:27px}nav{margin-left:0}}
+@media(prefers-reduced-motion:reduce){*{animation:none!important}}
+:focus-visible{outline:2px solid var(--cu);outline-offset:3px}
+
+/* бумажные кнопки: база */
+.btn,nav a,.ip button{--pp:#efe6d2;position:relative;color:#2b2418;border:0;background-color:var(--pp);
+background-blend-mode:normal,normal,normal,multiply;
+border-radius:20px 26px 17px 28px/26px 18px 28px 20px;box-shadow:0 1px 0 #fff8 inset,0 -2px 0 rgba(90,65,25,.28) inset,0 4px 0 #bfae8a,0 9px 16px rgba(0,0,0,.5);
+transform:rotate(-1.4deg);transition:transform .18s,box-shadow .18s}
+.btn:nth-of-type(even),nav a:nth-child(even){transform:rotate(1.2deg);border-radius:26px 18px 28px 17px/18px 26px 20px 28px}
+nav a:nth-child(3n){transform:rotate(-.6deg)}
+.btn:hover,nav a:hover,.ip button:hover{transform:rotate(0) translateY(-3px);filter:brightness(1.07);box-shadow:0 1px 0 #fff8 inset,0 -2px 0 rgba(90,65,25,.28) inset,0 7px 0 #bfae8a,0 14px 22px rgba(0,0,0,.5)}
+.btn:active,nav a:active,.ip button:active{transform:rotate(0) translateY(3px) scale(.97);box-shadow:0 1px 0 #bfae8a,0 3px 6px rgba(0,0,0,.5)}
+nav{gap:8px}nav a{font-weight:800;padding:8px 16px;color:#4a3d28}.btn{padding:15px 34px}.ip button{padding:8px 18px}
+nav a.on{--pp:#f0bf80;color:#1b130a;transform:rotate(0) translateY(2px);box-shadow:0 1px 0 #fff8 inset,0 -2px 0 rgba(90,65,25,.28) inset,0 2px 0 #a8793f,0 5px 9px rgba(0,0,0,.5)}
+.btn.ghost{color:#2b2418}
+/* k1 мятая */
+.k1{background-image:linear-gradient(112deg,transparent 31%,rgba(60,40,10,.22) 31.4%,transparent 32.4%),linear-gradient(68deg,transparent 58%,rgba(255,255,255,.7) 58.3%,rgba(60,40,10,.18) 59%,transparent 60%),linear-gradient(172deg,transparent 78%,rgba(60,40,10,.14) 78.5%,transparent 80%),url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27180%27%20height%3D%2790%27%3E%3Cfilter%20id%3D%27f%27%3E%3CfeTurbulence%20type%3D%27fractalNoise%27%20baseFrequency%3D%270.03%200.055%27%20numOctaves%3D%273%27%20seed%3D%277%27/%3E%3CfeDiffuseLighting%20lighting-color%3D%27%23fff%27%20surfaceScale%3D%272.6%27%3E%3CfeDistantLight%20azimuth%3D%27235%27%20elevation%3D%2758%27/%3E%3C/feDiffuseLighting%3E%3C/filter%3E%3Crect%20width%3D%27100%25%27%20height%3D%27100%25%27%20filter%3D%27url%28%23f%29%27/%3E%3C/svg%3E");background-size:100% 100%,100% 100%,100% 100%,180px 90px}
+/* k2 сложенная: крупные сгибы */
+.k2{--pp:#f1e9d6;background-image:linear-gradient(90deg,transparent 33%,rgba(60,40,10,.3) 33.4%,rgba(255,255,255,.55) 34.2%,transparent 35%),linear-gradient(90deg,transparent 66%,rgba(255,255,255,.5) 66.3%,rgba(60,40,10,.28) 67%,transparent 68%),linear-gradient(180deg,transparent 48%,rgba(60,40,10,.22) 49%,rgba(255,255,255,.4) 50%,transparent 51.5%),url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27240%27%20height%3D%27120%27%3E%3Cfilter%20id%3D%27f%27%3E%3CfeTurbulence%20type%3D%27fractalNoise%27%20baseFrequency%3D%270.012%200.02%27%20numOctaves%3D%272%27%20seed%3D%273%27/%3E%3CfeDiffuseLighting%20lighting-color%3D%27%23fff%27%20surfaceScale%3D%275.5%27%3E%3CfeDistantLight%20azimuth%3D%27200%27%20elevation%3D%2758%27/%3E%3C/feDiffuseLighting%3E%3C/filter%3E%3Crect%20width%3D%27100%25%27%20height%3D%27100%25%27%20filter%3D%27url%28%23f%29%27/%3E%3C/svg%3E");background-size:100% 100%,100% 100%,100% 100%,240px 120px}
+/* k3 тетрадь в линейку */
+.k3{--pp:#f7f2e4;background-image:linear-gradient(90deg,transparent 14%,rgba(200,60,50,.55) 14.3%,rgba(200,60,50,.55) 15.2%,transparent 15.5%),repeating-linear-gradient(180deg,transparent 0 10px,rgba(70,110,190,.38) 10px 11px),url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27180%27%20height%3D%2790%27%3E%3Cfilter%20id%3D%27f%27%3E%3CfeTurbulence%20type%3D%27fractalNoise%27%20baseFrequency%3D%270.03%200.055%27%20numOctaves%3D%273%27%20seed%3D%277%27/%3E%3CfeDiffuseLighting%20lighting-color%3D%27%23fff%27%20surfaceScale%3D%272.6%27%3E%3CfeDistantLight%20azimuth%3D%27235%27%20elevation%3D%2758%27/%3E%3C/feDiffuseLighting%3E%3C/filter%3E%3Crect%20width%3D%27100%25%27%20height%3D%27100%25%27%20filter%3D%27url%28%23f%29%27/%3E%3C/svg%3E");background-size:100% 100%,100% 100%,180px 90px}
+/* k4 в клетку */
+.k4{--pp:#f4efe0;background-image:linear-gradient(rgba(70,110,190,.32) 1px,transparent 1px),linear-gradient(90deg,rgba(70,110,190,.32) 1px,transparent 1px),linear-gradient(120deg,transparent 60%,rgba(60,40,10,.2) 60.5%,transparent 62%),url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27180%27%20height%3D%2790%27%3E%3Cfilter%20id%3D%27f%27%3E%3CfeTurbulence%20type%3D%27fractalNoise%27%20baseFrequency%3D%270.03%200.055%27%20numOctaves%3D%273%27%20seed%3D%277%27/%3E%3CfeDiffuseLighting%20lighting-color%3D%27%23fff%27%20surfaceScale%3D%272.6%27%3E%3CfeDistantLight%20azimuth%3D%27235%27%20elevation%3D%2758%27/%3E%3C/feDiffuseLighting%3E%3C/filter%3E%3Crect%20width%3D%27100%25%27%20height%3D%27100%25%27%20filter%3D%27url%28%23f%29%27/%3E%3C/svg%3E");background-size:12px 12px,12px 12px,100% 100%,180px 90px}
+/* k5 крафт */
+.k5{--pp:#c9a878;background-image:radial-gradient(rgba(70,45,15,.35) 1px,transparent 1.3px),linear-gradient(75deg,transparent 40%,rgba(255,255,255,.25) 40.5%,transparent 42%),url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%2790%27%20height%3D%2760%27%3E%3Cfilter%20id%3D%27f%27%3E%3CfeTurbulence%20type%3D%27fractalNoise%27%20baseFrequency%3D%270.9%200.9%27%20numOctaves%3D%272%27%20seed%3D%2711%27/%3E%3CfeDiffuseLighting%20lighting-color%3D%27%23fff%27%20surfaceScale%3D%271.2%27%3E%3CfeDistantLight%20azimuth%3D%27235%27%20elevation%3D%2758%27/%3E%3C/feDiffuseLighting%3E%3C/filter%3E%3Crect%20width%3D%27100%25%27%20height%3D%27100%25%27%20filter%3D%27url%28%23f%29%27/%3E%3C/svg%3E");background-size:7px 7px,100% 100%,90px 60px}
+/* k6 газетный растр */
+.k6{--pp:#e8dfc8;background-image:radial-gradient(rgba(40,30,15,.42) 1.3px,transparent 1.6px),linear-gradient(105deg,transparent 52%,rgba(60,40,10,.22) 52.5%,rgba(255,255,255,.5) 53.5%,transparent 55%),url("data:image/svg+xml,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27180%27%20height%3D%2790%27%3E%3Cfilter%20id%3D%27f%27%3E%3CfeTurbulence%20type%3D%27fractalNoise%27%20baseFrequency%3D%270.03%200.055%27%20numOctaves%3D%273%27%20seed%3D%277%27/%3E%3CfeDiffuseLighting%20lighting-color%3D%27%23fff%27%20surfaceScale%3D%272.6%27%3E%3CfeDistantLight%20azimuth%3D%27235%27%20elevation%3D%2758%27/%3E%3C/feDiffuseLighting%3E%3C/filter%3E%3Crect%20width%3D%27100%25%27%20height%3D%27100%25%27%20filter%3D%27url%28%23f%29%27/%3E%3C/svg%3E");background-size:6px 6px,100% 100%,180px 90px}
+.hero{min-height:420px}
+.big{position:absolute;right:7%;top:50%;transform:translateY(-50%) rotate(-5deg);font:400 clamp(70px,13vw,170px)/1 'Russo One',sans-serif;color:#2b2418;background:var(--paper);padding:.12em .3em .08em;border-radius:34px 44px 30px 48px/44px 30px 48px 34px;letter-spacing:.04em;box-shadow:0 5px 0 var(--paper2),0 22px 40px rgba(0,0,0,.55);background-image:linear-gradient(112deg,transparent 31%,rgba(60,40,10,.2) 31.4%,transparent 32.4%),linear-gradient(68deg,transparent 58%,rgba(255,255,255,.6) 58.3%,rgba(60,40,10,.16) 59%,transparent 60%)}
+@media(max-width:760px){.hero{min-height:480px}.big{right:auto;left:50%;top:auto;bottom:34px;transform:translateX(-50%) rotate(-5deg)}}
+.pkgs{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:18px;margin-bottom:18px}
+.pkg{position:relative;display:block;background:var(--graph);border:2px solid var(--line);border-radius:var(--r);padding:24px;cursor:pointer;transition:.2s}
+.pkg input{position:absolute;opacity:0;pointer-events:none}
+.pkg p{color:var(--mut)}.pkg:hover{border-color:#5a4a36}
+.pkg:has(input:checked){border-color:var(--cu);background:radial-gradient(300px 160px at 50% 0,#2d2519,var(--graph))}
+.pkg:has(input:focus-visible){outline:2px solid var(--cu);outline-offset:3px}
+.pay{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:start}
+.fld{display:block;font-weight:700;margin-bottom:14px}
+.fld input{display:block;width:100%;margin-top:8px;background:var(--ink);color:var(--tx);border:1px solid var(--line);border-radius:999px;padding:14px 20px;font:600 16px Manrope}
+.fld input:focus{outline:2px solid var(--cu);border-color:transparent}
+.sum{margin:6px 0 18px;font-size:18px}.sum b{font:400 26px 'Russo One';color:var(--cu)}
+#msg{margin-top:12px;color:#f0a58a;min-height:1.5em}
+#qrbox h3{margin-bottom:6px}#qrbox p{color:var(--mut)}
+#qr{width:max-content;margin:16px 0;padding:14px;background:var(--paper);border-radius:22px 28px 20px 26px;box-shadow:0 6px 0 var(--paper2),0 14px 26px rgba(0,0,0,.5)}
+#qr img,#qr canvas{display:block;border-radius:8px}
+#qrbox ol{color:var(--mut);padding-left:20px;margin-bottom:18px}
+[hidden]{display:none!important}
+@media(max-width:760px){.pay{grid-template-columns:1fr}}
+.partner{margin-top:18px;display:flex;justify-content:space-between;align-items:center;gap:20px;flex-wrap:wrap}
+.partner h3{margin-bottom:6px}.partner p{color:var(--mut);max-width:520px}.partner b{color:var(--tx)}
+.ipchip{display:inline-flex;align-items:center;gap:12px;background:rgba(255,255,255,.07);border:1px solid var(--line);border-radius:999px;padding:7px 8px 7px 20px;color:var(--tx);font:700 16px Manrope;cursor:pointer;transition:.2s}
+.ipchip:hover{border-color:var(--cu)}.ipchip .cl{background:var(--paper);color:#2b2418;border-radius:999px;padding:5px 14px;font-size:13px;font-weight:800;min-width:104px;text-align:center}
+[data-copy]{cursor:pointer}.card[data-copy]:hover{border-color:var(--cu)}
+.hero{min-height:0;padding-bottom:34px}.big{top:36%}
+.facts{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:40px;position:relative}
+.fact{display:block;background:rgba(255,255,255,.05);border:1px solid var(--line);border-radius:22px 26px 20px 24px;padding:16px 18px;transition:.2s}
+a.fact:hover{border-color:var(--cu);transform:translateY(-3px)}
+.fact b{display:block;font-size:16px;margin-bottom:4px}.fact span{display:block;color:var(--mut);font-size:14px;line-height:1.45}
+@media(max-width:900px){.facts{grid-template-columns:1fr 1fr}}
+@media(max-width:760px){.hero{min-height:0}.big{position:static;display:inline-block;margin:26px 0 0;left:auto;bottom:auto;font-size:84px;transform:rotate(-5deg)}.facts{margin-top:28px}}
+</style></head><body>
+<header><a class="logo" href="#home">ЧПА</a>
+<nav><a class="k1" href="#home" data-p="home">Главная</a><a class="k2" href="#download" data-p="download">Скачать</a><a class="k3" href="#donate" data-p="donate">Донат</a><a class="k4" href="#faq" data-p="faq">FAQ</a><a class="k5" href="#support" data-p="support">Поддержка</a><a class="k6" href="#contacts" data-p="contacts">Контакты</a></nav></header>
+<main>
+<div class="page" id="home">
+<div class="hero"><h1>Добро пожаловать на ЧПА</h1><p>Сервер на MTA:SA. Русские легенды, живой автопарк и своя переработанная механика.</p>
+<div class="row"><span class="online"><i class="dot"></i><span>Онлайн: <b id="on">0</b> / 300</span></span><a class="btn k2" href="#download">Скачать</a></div>
+<div style="margin-top:18px"><button class="ipchip" type="button" data-copy="195.18.27.226:22041" aria-label="Скопировать IP сервера"><span>195.18.27.226:22041</span><span class="cl">Копировать</span></button></div>
+<div class="big" aria-hidden="true">ЧПА</div>
+<div class="facts">
+<div class="fact"><b>Свой движок</b><span>MTA:SA, который мы переработали под себя</span></div>
+<div class="fact"><b>Большой автопарк</b><span>ВАЗ 2101, ВАЗ 2106 и другие русские легенды</span></div>
+<a class="fact" href="#download"><b>Старт за 5 шагов</b><span>Скачай MTA:SA, вставь IP и заходи</span></a>
+<a class="fact" href="#donate"><b>Донат</b><span>Привилегии оформляет наш партнёр в Telegram</span></a>
+</div></div>
+<section><h2>Что такое ЧПА</h2><div class="two"><div class="card"><p>ЧПА — это игровой сервер на движке <b>MTA:SA</b> (Multi Theft Auto: San Andreas). Мы не взяли готовую сборку: мы переработали сервер под себя — машины, управление, экономику и интерфейс.</p><p style="margin-top:12px;color:var(--mut)">Заходи, выбирай машину и поезжай.</p></div><div class="card" style="display:grid;place-items:center;text-align:center"><span class="chip" style="font-size:34px;font-family:'Russo One';padding:14px 26px">ЧПА</span><p style="color:var(--mut);margin-top:16px">на движке MTA:SA</p></div></div></section>
+<section><h2>Почему мы</h2><div class="card"><p>Потому что у нас большой автопарк. Современные спорткары и русские легенды вроде ВАЗ 2101: каждая машина ведёт себя по-своему.</p></div>
+</section>
+</div>
+
+<div class="page" id="download"><div class="pagehead"><h2>Как начать играть</h2><p>Пять шагов от установки до первой поездки.</p></div>
+<div class="map">
+<div class="step"><div class="pin"><i>1</i></div><div class="card"><h3>Установи GTA: San Andreas</h3><p>Нужна чистая версия игры. Моды и сборки лучше убрать.</p></div></div>
+<div class="step"><div class="pin"><i>2</i></div><div class="card"><h3>Скачай MTA:SA</h3><p>Загрузи клиент с официального сайта multitheftauto.com и установи его.</p><a class="btn k5" style="margin-top:12px;padding:10px 22px" href="https://multitheftauto.com" target="_blank" rel="noopener">Официальный сайт</a></div></div>
+<div class="step"><div class="pin"><i>3</i></div><div class="card"><h3>Открой прямое подключение</h3><p>В MTA выбери «Быстрое подключение» и вставь адрес сервера.</p><div class="ip" data-copy="195.18.27.226:22041"><span id="ip">195.18.27.226:22041</span><button class="k1 cl" type="button" id="cpb">Копировать</button></div></div></div>
+<div class="step"><div class="pin"><i>4</i></div><div class="card"><h3>Создай аккаунт</h3><p>Придумай логин и пароль при первом входе.</p></div></div>
+<div class="step"><div class="pin"><i>5</i></div><div class="card"><h3>Выбери машину и езжай</h3><p>Нажми на любую машину в автопарке и вперёд.</p></div></div>
+</div></div>
+
+<div class="page" id="donate"><div class="pagehead"><h2>Донат</h2><p>Выбери пакет и оформи донат через нашего партнёра в Telegram.</p></div>
+<div class="pkgs">
+<label class="pkg"><input type="radio" name="pkg" value="start"><b>Старт</b><div class="price">199 ₽</div><p>Стартовые деньги и слот под одну машину.</p></label>
+<label class="pkg"><input type="radio" name="pkg" value="driver" checked><b>Водитель</b><div class="price">499 ₽</div><p>Больше денег, два слота и особый тег.</p></label>
+<label class="pkg"><input type="radio" name="pkg" value="legend"><b>Легенда</b><div class="price">999 ₽</div><p>Редкая машина из автопарка и приоритет в очереди.</p></label>
+</div>
+<div class="card partner"><div><h3>Купить через партнёра в Telegram</h3><p>Напиши нашему партнёру <b>@Odersan</b>: он подскажет способы оплаты и оформит донат. Кнопка «Скопировать сообщение» копирует шаблон: впиши в скобки свой ник и нужную привилегию.</p></div>
+<div class="row"><a class="btn k3" href="https://t.me/Odersan" target="_blank" rel="noopener">Написать в Telegram</a><button class="btn ghost k4" type="button" id="cpmsg">Скопировать сообщение</button></div></div></div>
+<div class="page" id="faq"><div class="pagehead"><h2>Вопросы и ответы</h2></div>
+<details><summary>Что нужно для игры?</summary><p>GTA: San Andreas и клиент MTA:SA.</p></details>
+<details><summary>Это бесплатно?</summary><p>Играть можно бесплатно. Донат нужен только для бонусов.</p></details>
+<details><summary>Как подключиться?</summary><p>Открой вкладку «Скачать» и пройди пять шагов.</p></details>
+<details><summary>Что делать, если игра вылетает?</summary><p>Обнови MTA:SA и напиши в поддержку со скриншотом ошибки.</p></details></div>
+
+<div class="page" id="support"><div class="pagehead"><h2>Поддержка</h2><p>Напиши нам, если что-то не работает или нужна помощь с донатом.</p></div>
+<div class="grid3"><div class="card"><b>Discord</b><p style="color:var(--mut);margin:6px 0 14px">Наш Discord: <b style="color:var(--tx)">furka_web</b>. Нажми на кнопку, чтобы скопировать ник, и добавь нас в друзья.</p><button class="btn k3 cl" type="button" data-copy="furka_web">Скопировать ник</button></div><div class="card"><b>Telegram</b><p style="color:var(--mut);margin:6px 0 14px">Для срочных вопросов.</p><a class="btn ghost k4" href="https://t.me/stiqq455" target="_blank" rel="noopener">Написать</a></div></div></div>
+
+<div class="page" id="contacts"><div class="pagehead"><h2>Контакты</h2></div>
+<div class="grid3"><div class="card" data-copy="195.18.27.226:22041"><b>Адрес сервера</b><p style="color:var(--mut)">195.18.27.226:22041</p><p class="cl" style="font-size:14px">Нажми, чтобы скопировать</p></div><div class="card" data-copy="furka_web"><b>Discord</b><p style="color:var(--mut)">furka_web</p><p class="cl" style="font-size:14px;color:var(--mut)">Нажми, чтобы скопировать</p></div><div class="card"><b>Telegram</b><p style="color:var(--mut)">укажи ссылку</p></div></div></div>
+</main>
+<footer>© ЧПА — сервер на MTA:SA</footer>
+<script>
+const pages=[...document.querySelectorAll('.page')],links=[...document.querySelectorAll('nav a')];
+function go(){let h=(location.hash||'#home').slice(1);if(!document.getElementById(h))h='home';
+pages.forEach(p=>p.classList.toggle('on',p.id===h));links.forEach(a=>a.classList.toggle('on',a.dataset.p===h));scrollTo(0,0)}
+addEventListener('hashchange',go);go();
+// онлайн: замени ONLINE на реальное число
+const ONLINE=128;let n=0;const el=document.getElementById('on');(function t(){n=Math.min(ONLINE,n+Math.ceil((ONLINE-n)/8));el.textContent=n;if(n<ONLINE)setTimeout(t,40)})();
+
+const PACKS={start:{n:'Старт',p:199},driver:{n:'Водитель',p:499},legend:{n:'Легенда',p:999}};
+const sel=()=>document.querySelector('input[name=pkg]:checked').value;
+const money=v=>v.toLocaleString('ru-RU')+' ₽';
+document.getElementById('cpmsg').addEventListener('click',()=>{const m='Привет! Мой ник (     ), хочу привилегию (     )';copyText(m,()=>{const b=document.getElementById('cpmsg');b.textContent='Скопировано';setTimeout(()=>b.textContent='Скопировать сообщение',1600)})});
+
+function copyText(s,ok){const fb=()=>{try{const a=document.createElement('textarea');a.value=s;a.style.cssText='position:fixed;opacity:0';document.body.appendChild(a);a.select();document.execCommand('copy');a.remove();ok()}catch(e){}};
+try{navigator.clipboard.writeText(s).then(ok,fb)}catch(e){fb()}}
+document.addEventListener('click',e=>{const el=e.target.closest('[data-copy]');if(!el)return;
+copyText(el.dataset.copy,()=>{const l=el.querySelector('.cl')||(el.classList.contains('cl')?el:null);if(!l)return;
+if(!l.dataset.o)l.dataset.o=l.textContent;l.textContent='Скопировано';clearTimeout(l._t);l._t=setTimeout(()=>l.textContent=l.dataset.o,1600)})});
+</script></body></html>
